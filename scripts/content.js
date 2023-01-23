@@ -44,7 +44,7 @@ question.addEventListener("click", async (e) => {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${sessionStorage.getItem("chatgpt_key")}`,
+            Authorization: `Bearer ${localStorage.getItem("chatgpt_key")}`,
         },
         body: JSON.stringify(body),
     });
@@ -52,7 +52,7 @@ question.addEventListener("click", async (e) => {
 
     if (data.error) {
         badge.innerHTML = `<p style='color:red;'>${data.error.message}</p>`;
-        sessionStorage.setItem("chatgpt_key", "");
+        localStorage.setItem("chatgpt_key", "");
     } else if (data.choices[0].text) {
         badge.textContent = data.choices[0].text;
     }
@@ -60,10 +60,10 @@ question.addEventListener("click", async (e) => {
 
 // Always checks that an API key is being used
 setInterval(() => {
-    if (!sessionStorage.getItem("chatgpt_key")) {
+    if (!localStorage.getItem("chatgpt_key")) {
         let key = prompt("Please enter your ChatGPT API key", "");
         if (key) {
-            sessionStorage.setItem("chatgpt_key", key);
+            localStorage.setItem("chatgpt_key", key);
         }
     }
 }, 4000);
