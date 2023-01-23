@@ -17,8 +17,13 @@ var styleSheet = document.createElement("style");
 styleSheet.innerText = styles;
 document.head.appendChild(styleSheet);
 
-question = document.getElementById("questionDetails__Text");
-badge = document.createElement("p");
+let question = document.getElementById("questionDetails__Text");
+let nextQuestion = document.getElementById("timeInfo__NextQuestionAfter");
+let quizTheme = document
+    .querySelector(".gameStateLine__Theme")
+    .textContent.split(":")[0];
+
+let badge = document.createElement("p");
 badge.setAttribute("id", "myquiz_answer");
 
 // Insert empty output element onto page for display
@@ -26,37 +31,50 @@ document
     .querySelector(".questionDetails__QuestionCol")
     .insertAdjacentElement("beforebegin", badge);
 
-// Clicking on the question will generate some response
-question.addEventListener("click", async (e) => {
-    if (document.getElementById("myquiz_answer")) {
-        badge.innerHTML = "<div class='loader'></div>";
-    }
-    loader = document.getElementsByClassName("loader");
+window.onload = () => {
+    let mutationObserver = new MutationObserver(async (entities) => {
+        if (nextQuestion.style.display == "none") {
+            console.log(quizTheme);
+            if (document.getElementById("myquiz_answer")) {
+                badge.innerHTML = "<div class='loader'></div>";
+            }
+            loader = document.getElementsByClassName("loader");
 
-    // Make HTTP request to ChatGPT
-    const body = {
-        model: "text-davinci-003",
-        prompt: `${question.textContent}`,
-        temperature: 0,
-        max_tokens: 100,
-    };
-    const answer = await fetch("https://api.openai.com/v1/completions", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("chatgpt_key")}`,
-        },
-        body: JSON.stringify(body),
+            // Make HTTP request to ChatGPT
+            const body = {
+                model: "text-davinci-003",
+                prompt: `Category: ${quizTheme}, Question: ${question.textContent}`,
+                temperature: 0,
+                max_tokens: 25,
+            };
+            const answer = await fetch(
+                "https://api.openai.com/v1/completions",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${localStorage.getItem(
+                            "chatgpt_key"
+                        )}`,
+                    },
+                    body: JSON.stringify(body),
+                }
+            );
+            data = await answer.json();
+
+            if (data.error) {
+                badge.innerHTML = `<p style='color:red;'>${data.error.message}</p>`;
+                localStorage.setItem("chatgpt_key", "");
+            } else if (data.choices[0].text) {
+                badge.textContent = data.choices[0].text;
+            }
+        }
     });
-    data = await answer.json();
-
-    if (data.error) {
-        badge.innerHTML = `<p style='color:red;'>${data.error.message}</p>`;
-        localStorage.setItem("chatgpt_key", "");
-    } else if (data.choices[0].text) {
-        badge.textContent = data.choices[0].text;
-    }
-});
+    mutationObserver.observe(question, {
+        childList: true,
+        characterData: true,
+    });
+};
 
 // Always checks that an API key is being used
 setInterval(() => {
