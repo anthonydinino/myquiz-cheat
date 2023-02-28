@@ -94,6 +94,5 @@ This was fairly tricky because, when the next question appeared, the page doesn'
 - Specify to the `MutationObserver` object what elements to watch and what function to run, when something changes.
 - Inside that function, enclose everything into an `if` statement checking if the "Next question after:" HTML element is `display: none`.
 
-## Troubleshooting
-- If it's not working, try refreshing the page.
+#### Please use responsibly. Thank you.
 
