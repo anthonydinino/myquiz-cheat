@@ -1,3 +1,4 @@
+// Add styles to page
 var styles = `
     .loader {
         border: 4px solid #f3f3f3; /* Light grey */
@@ -17,18 +18,23 @@ var styleSheet = document.createElement("style");
 styleSheet.innerText = styles;
 document.head.appendChild(styleSheet);
 
+// Get question
 let question = document.getElementById("questionDetails__Text");
+
+// Get next question trigger
 let nextQuestionHTML = document.getElementById("timeInfo__NextQuestionAfter");
+
+// Get quiz category/theme
 let quizTheme = document
     .querySelector(".gameStateLine__Theme")
     .textContent.split(":")[0];
 
+// Get question choices as array
 let choicesHTML = document.getElementsByClassName("answerButton__TextSpan");
 
+// Insert empty output element onto page for display
 let badge = document.createElement("p");
 badge.setAttribute("id", "myquiz_answer");
-
-// Insert empty output element onto page for display
 document
     .querySelector(".questionDetails__QuestionCol")
     .insertAdjacentElement("beforebegin", badge);
@@ -50,32 +56,34 @@ window.onload = () => {
             // Make HTTP request to ChatGPT
             const body = {
                 model: "gpt-3.5-turbo",
-                prompt,
+                messages: [{ role: "user", content: prompt }],
                 temperature: 0,
-                max_tokens: 256,
             };
 
-            const answer = await fetch(
-                "https://api.openai.com/v1/completions",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${localStorage.getItem(
-                            "chatgpt_key"
-                        )}`,
-                    },
-                    body: JSON.stringify(body),
-                }
-            );
-            data = await answer.json();
+            try {
+                const answer = await fetch(
+                    "https://api.openai.com/v1/chat/completions",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${localStorage.getItem(
+                                "chatgpt_key"
+                            )}`,
+                        },
+                        body: JSON.stringify(body),
+                    }
+                );
+                const data = await answer.json();
 
-            if (data.error) {
-                badge.innerHTML = `<p style='color:red;'>${data.error.message}</p>`;
-                localStorage.setItem("chatgpt_key", "");
-            } else if (data.choices[0].text) {
-                const response = data.choices[0].text;
+                // If error, display error message
+                if (data.error) throw new Error(data.error.message);
+
+                // Grab and display response
+                const response = data.choices[0].message["content"];
                 badge.textContent = response;
+
+                // Click on choice if included in response
                 for (const [key, value] of Object.entries(choicesHTML)) {
                     if (
                         response
@@ -86,6 +94,9 @@ window.onload = () => {
                         choicesHTML[key].click();
                     }
                 }
+            } catch (error) {
+                badge.innerHTML = `<p style='color:red;'>${error}</p>`;
+                localStorage.setItem("chatgpt_key", "");
             }
         }
     });
