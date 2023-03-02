@@ -94,6 +94,12 @@ window.onload = () => {
                         choicesHTML[key].click();
                     }
                 }
+
+                // Log the prompt and response for people who are curious
+                console.log(
+                    `%c${prompt} ${response}`,
+                    "color : teal; font-weight: bold"
+                );
             } catch (error) {
                 badge.innerHTML = `<p style='color:red;'>${error}</p>`;
                 localStorage.setItem("chatgpt_key", "");
